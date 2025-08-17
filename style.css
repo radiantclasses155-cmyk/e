@@ -1,0 +1,42 @@
+*{
+margin:0;
+}
+
+.container{
+    background-color:rgb(50 50 50);
+    padding :20px;
+    height:100vh;
+    display:grid;
+    grid-template-columns:(500px , 1fr) 1fr;
+    grid-template-rows:1fr 1fr 1fr;
+    grid-gap:10px;
+    grid-template-areas:
+    "h h h"
+    "m m s"
+    "m m a"
+    "h h h"
+}
+
+header {
+    
+    grid-area:h;
+    
+}
+
+nav {
+   grid-area:n;
+
+}
+aside {
+    grid-area:a;
+}
+main {
+    grid-area:m;
+}
+section {
+    grid-area:s;
+}
+
+footer {
+    grid-area:f;
+}

@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MiniTube — Learner YouTube Clone</title>
+<style>
+  /* Simple, readable CSS for a learner project */
+  :root{
+    --bg:#0f0f10; --panel:#111216; --muted:#9aa0ab; --accent:#ff0000;
+    --card:#0b0b0d; --soft:#dfe6ee;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;background:var(--bg);color:var(--soft)}
+  header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);position:sticky;top:0;z-index:50;border-bottom:1px solid #101214}
+  .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;color:var(--accent)}
+  .search{flex:1;display:flex;justify-content:center}
+  .search input{width:60%;padding:8px 12px;border-radius:20px;border:1px solid #222;background:#0b0b0d;color:var(--soft);outline:none}
+  .actions{display:flex;gap:8px;align-items:center}
+  .btn{background:transparent;border:1px solid #222;padding:6px 10px;border-radius:10px;color:var(--soft);cursor:pointer}
+  .container{display:grid;grid-template-columns:240px 1fr 360px;gap:16px;padding:16px}
+  nav{background:transparent;padding-top:8px}
+  nav a{display:block;padding:10px 12px;color:var(--muted);text-decoration:none;border-radius:8px}
+  nav a:hover{background:#0b0b0d;color:var(--soft)}
+  /* main area */
+  .main{min-height:70vh}
+  .player-card{background:var(--panel);border-radius:12px;overflow:hidden;border:1px solid #111;padding:0}
+  .player-frame{width:100%;height:480px;background:#000}
+  .meta{padding:12px 14px}
+  .title{font-size:18px;font-weight:700;margin-bottom:6px;color:#fff}
+  .meta-row{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--muted);font-size:14px}
+  .channel{display:flex;align-items:center;gap:10px}
+  .avatar{width:44px;height:44px;border-radius:50%;background:#1b1b1b;display:inline-block}
+  .subscribe{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:18px;cursor:pointer}
+  .controls{display:flex;gap:8px;align-items:center;margin-top:10px}
+  .control-btn{background:#0b0b0d;border:1px solid #161616;padding:6px 10px;border-radius:8px;color:var(--soft);cursor:pointer}
+  /* grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px}
+  .card{background:var(--card);border-radius:10px;overflow:hidden;border:1px solid #0c0c0d;cursor:pointer}
+  .thumb{position:relative;height:120px;background:#000}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .duration{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,0.7);padding:3px 6px;border-radius:6px;font-size:12px}
+  .card-body{padding:10px}
+  .vtitle{font-weight:600;font-size:14px;color:#fff;line-height:1.2}
+  .vmeta{color:var(--muted);font-size:13px;margin-top:6px}
+  /* right rail */
+  .rail{position:sticky;top:84px}
+  .related{display:flex;gap:8px;padding:8px 0;align-items:flex-start;border-bottom:1px solid #0b0b0b;margin-bottom:8px}
+  .related img{width:160px;height:90px;object-fit:cover;border-radius:8px}
+  .related .r-title{font-size:14px;font-weight:600;color:#fff}
+  /* comments */
+  .comments{margin-top:12px}
+  .comment-form textarea{width:100%;background:#0b0b0d;color:var(--soft);border:1px solid #161619;padding:8px;border-radius:8px;min-height:64px}
+  .comment{border-top:1px solid #0b0b0b;padding:8px 0}
+  .muted{color:var(--muted)}
+  /* small screens */
+  @media (max-width:1100px){.container{grid-template-columns:1fr 360px;padding:12px}.player-frame{height:360px}}
+  @media (max-width:820px){.container{grid-template-columns:1fr;padding:12px}.rail{display:none}.player-frame{height:240px}.search input{width:90%}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">▣ MiniTube</div>
+  <div class="search">
+    <input id="searchBox" placeholder="Search videos or channels..." />
+  </div>
+  <div class="actions">
+    <button class="btn" id="uploadBtn">Upload</button>
+    <button class="btn" id="signBtn">Sign in</button>
+  </div>
+</header>
+
+<div class="container">
+  <!-- LEFT NAV -->
+  <nav>
+    <a href="#" data-action="home">Home</a>
+    <a href="#" data-action="trending">Trending</a>
+    <a href="#" data-action="subscriptions">Subscriptions</a>
+    <a href="#" data-action="library">Library</a>
+    <hr style="border:0;border-top:1px solid #0b0b0b;margin:12px 0">
+    <strong style="color:var(--muted);padding-left:12px">Browse</strong>
+    <a href="#" data-cat="Music">Music</a>
+    <a href="#" data-cat="Gaming">Gaming</a>
+    <a href="#" data-cat="Tech">Tech</a>
+    <a href="#" data-cat="Film">Film</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <section class="player-card" id="playerCard">
+      <div class="player-frame" id="playerFrame">
+        <!-- iframe inserted here -->
+      </div>
+      <div class="meta">
+        <div class="title" id="videoTitle">Loading...</div>
+        <div class="meta-row">
+          <div class="channel">
+            <div class="avatar" id="channelAvatar"></div>
+            <div>
+              <div id="channelName">Channel</div>
+              <div class="muted" id="videoStats">0 views • date</div>
+            </div>
+          </div>
+          <div>
+            <button class="subscribe" id="subscribeBtn">Subscribe</button>
+            <div style="height:8px"></div>
+            <div class="controls">
+              <button class="control-btn" id="likeBtn">👍 <span id="likeCount">0</span></button>
+              <button class="control-btn" id="dislikeBtn">👎</button>
+              <button class="control-btn" id="shareBtn">Share</button>
+              <button class="control-btn" id="saveBtn">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="comments" id="commentsSection">
+          <h4 style="margin:8px 0 6px">Comments</h4>
+          <div class="comment-form">
+            <textarea id="commentInput" placeholder="Add a public comment..."></textarea>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <button class="btn" id="postComment">Comment</button>
+              <div class="muted" id="commentMsg"></div>
+            </div>
+          </div>
+          <div id="commentsList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- video grid -->
+    <div class="grid" id="videoGrid" aria-live="polite"></div>
+
+  </main>
+
+  <!-- RIGHT RAIL -->
+  <aside class="rail">
+    <div id="upNextHeader" style="color:var(--muted);margin-bottom:8px">Up next</div>
+    <div id="relatedList"></div>
+  </aside>
+</div>
+
+<script>
+/* ---------------------------
+   Learner-friendly YouTube clone
+   - front-end only
+   - click card -> watch (embedded YouTube iframe)
+   - search, category filter, subscribe/like (UI only)
+   - simple comments saved locally (localStorage)
+   - up-next/autoplay next (simple)
+   --------------------------- */
+
+/* MOCK VIDEO DATA
+   Each item includes a real-ish YouTube video id (public).
+   Thumbnails use ytimg CDN pattern. */
+const VIDEOS = [
+  { id:'YE7VzlLtp-4', title:'Big Buck Bunny (short)', channel:'Blender', views:12900000, published:'2019-03-01', duration:'1:00', category:'Film'},
+  { id:'aqz-KE-bpKQ', title:'W3Schools Demo Video', channel:'W3Schools', views:5400000, published:'2021-11-05', duration:'2:31:12', category:'Music'},
+  { id:'dQw4w9WgXcQ', title:'Never Gonna Give You Up (classic)', channel:'RickRoll', views:890000000, published:'1987-10-25', duration:'3:33', category:'Music'},
+  { id:'sBws8MSXN7A', title:'Chrome Dev Summit talk', channel:'Google Dev', views:213000, published:'2020-09-14', duration:'26:17', category:'Tech'},
+  { id:'hY7m5jjJ9mM', title:'Cat Video Compilation', channel:'CuteCats', views:1570000, published:'2023-04-21', duration:'8:43', category:'Gaming'},
+  { id:'9bZkp7q19f0', title:'Gangnam Style (popular)', channel:'PSY', views:3800000000, published:'2012-07-15', duration:'4:13', category:'Music'}
+];
+
+/* small helpers */
+const $ = sel => document.querySelector(sel);
+const byId = id => document.getElementById(id);
+
+/* render helpers */
+function thumbUrl(id){ return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`; }
+function embedUrl(id, autoplay=1){ return `https://www.youtube.com/embed/${id}?autoplay=${autoplay}&rel=0&enablejsapi=1`; }
+function fmtViews(n){ if(n>=1e9) return (n/1e9).toFixed(1)+'B views'; if(n>=1e6) return (n/1e6).toFixed(1)+'M views'; if(n>=1e3) return (n/1e3).toFixed(1)+'K views'; return n+' views'; }
+
+/* state */
+let state = {
+  list: [...VIDEOS],
+  filter: '',
+  category: 'All',
+  current: null,
+  liked: {},       // { videoId: true }
+  subscribed: {},  // { channelName: true }
+  comments: JSON.parse(localStorage.getItem('minitube_comments')||'{}') // { videoId: [ {text,when} ] }
+};
+
+/* render video card grid */
+function renderGrid(){
+  const grid = byId('videoGrid');
+  const q = state.filter.trim().toLowerCase();
+  const cat = state.category;
+  const list = VIDEOS.filter(v=>{
+    if(cat!=='All' && v.category!==cat) return false;
+    if(!q) return true;
+    return v.title.toLowerCase().includes(q) || v.channel.toLowerCase().includes(q) || v.category.toLowerCase().includes(q);
+  });
+  state.list = list;
+  grid.innerHTML = list.map(v=>`
+    <article class="card" data-id="${v.id}">
+      <div class="thumb"><img src="${thumbUrl(v.id)}" alt="${v.title}"><div class="duration">${v.duration}</div></div>
+      <div class="card-body">
+        <div class="vtitle">${escapeHtml(v.title)}</div>
+        <div class="vmeta">${escapeHtml(v.channel)} • ${fmtViews(v.views)}</div>
+      </div>
+    </article>
+  `).join('');
+}
+
+/* render related/up next list */
+function renderRelated(){
+  const rail = byId('relatedList');
+  const others = VIDEOS.filter(v => !state.current || v.id !== state.current.id);
+  rail.innerHTML = others.map(v=>`
+    <div class="related" data-id="${v.id}">
+      <img src="${thumbUrl(v.id)}" alt="${v.title}">
+      <div style="flex:1">
+        <div class="r-title">${escapeHtml(v.title)}</div>
+        <div class="muted">${escapeHtml(v.channel)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* show player (embed iframe) and details */
+function showVideo(video){
+  state.current = video;
+  // player iframe
+  const frame = byId('playerFrame');
+  frame.innerHTML = `<iframe id="ytplayer" width="100%" height="100%" src="${embedUrl(video.id)}" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+  // metadata
+  byId('videoTitle').textContent = video.title;
+  byId('channelName').textContent = video.channel;
+  byId('videoStats').textContent = `${fmtViews(video.views)} • ${video.published}`;
+  // like button count UI (mock)
+  byId('likeCount').textContent = (video.likes || Math.floor(video.views/1000));
+  // subscribe button state
+  updateSubscribeButton(video.channel);
+  // render comments
+  renderComments();
+  // related
+  renderRelated();
+  // scroll to player on small screens
+  if(window.innerWidth < 820) window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* comments */
+function renderComments(){
+  const list = state.comments[state.current.id] || [];
+  const cl = byId('commentsList');
+  cl.innerHTML = list.map(c=>`<div class="comment"><b>User</b> <span class="muted" style="font-size:12px">• ${new Date(c.when).toLocaleString()}</span><div>${escapeHtml(c.text)}</div></div>`).join('') || '<div class="muted">No comments yet</div>';
+}
+
+/* UI helpers */ 
+function escapeHtml(s){ return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+function toggleLike(){
+  const vid = state.current.id;
+  state.liked[vid] = !state.liked[vid];
+  byId('likeBtn').style.background = state.liked[vid] ? '#2a2a2a' : '';
+  // simple increment/decrement for UI
+  let count = parseInt(byId('likeCount').textContent)||0;
+  byId('likeCount').textContent = state.liked[vid] ? count+1 : Math.max(0,count-1);
+}
+
+function toggleSubscribe(){
+  const ch = state.current.channel;
+  state.subscribed[ch] = !state.subscribed[ch];
+  updateSubscribeButton(ch);
+}
+
+function updateSubscribeButton(channelName){
+  const btn = byId('subscribeBtn');
+  if(state.subscribed[channelName]){ btn.textContent='Subscribed'; btn.style.background='#333'; btn.style.color='#fff'; }
+  else { btn.textContent='Subscribe'; btn.style.background='var(--accent)'; btn.style.color='#fff'; }
+}
+
+/* share: copy watch URL to clipboard (mock) */
+async function shareCurrent(){
+  if(!state.current) return;
+  const url = `${location.origin}${location.pathname}#v=${state.current.id}`;
+  try{
+    await navigator.clipboard.writeText(url);
+    alert('Watch link copied to clipboard:\n' + url);
+  }catch(e){ alert('Copy failed. URL: ' + url); }
+}
+
+/* save comment */
+function postComment(){
+  const text = byId('commentInput').value.trim();
+  const msg = byId('commentMsg');
+  if(!text){ msg.textContent='Comment is empty'; setTimeout(()=>msg.textContent='',2000); return; }
+  const id = state.current.id;
+  state.comments[id] = state.comments[id] || [];
+  state.comments[id].unshift({ text, when: Date.now() });
+  localStorage.setItem('minitube_comments', JSON.stringify(state.comments));
+  byId('commentInput').value='';
+  renderComments();
+  msg.textContent='Comment posted'; setTimeout(()=>msg.textContent='',1500);
+}
+
+/* search & category */
+function setupSearch(){
+  const box = byId('searchBox');
+  box.addEventListener('input', e => {
+    state.filter = e.target.value;
+    renderGrid();
+  });
+  // nav category links
+  document.querySelectorAll('nav a[data-cat]').forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      state.category = a.dataset.cat;
+      renderGrid();
+    });
+  });
+  // home/trending quick actions
+  document.querySelectorAll('nav a[data-action]').forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      const act = a.dataset.action;
+      if(act==='home'){ state.category='All'; state.filter=''; byId('searchBox').value=''; renderGrid(); }
+      if(act==='trending'){ state.category='All'; state.filter=''; sortByViews(); }
+    });
+  });
+}
+
+/* sort by views helper for trending */
+function sortByViews(){
+  VIDEOS.sort((a,b)=>b.views-a.views);
+  renderGrid();
+}
+
+/* attach events to grid, related, controls */
+function attachDelegation(){
+  // click a grid card
+  byId('videoGrid').addEventListener('click', e=>{
+    const card = e.target.closest('.card');
+    if(!card) return;
+    const id = card.dataset.id;
+    const v = VIDEOS.find(x=>x.id===id);
+    if(v) showVideo(v);
+  });
+  // related click
+  byId('relatedList').addEventListener('click', e=>{
+    const el = e.target.closest('[data-id]');
+    if(!el) return;
+    const id = el.dataset.id;
+    const v = VIDEOS.find(x=>x.id===id);
+    if(v) showVideo(v);
+  });
+  // control buttons
+  byId('likeBtn').addEventListener('click', toggleLike);
+  byId('dislikeBtn').addEventListener('click', ()=>alert('Dislike (UI only)'));
+  byId('subscribeBtn').addEventListener('click', toggleSubscribe);
+  byId('shareBtn').addEventListener('click', shareCurrent);
+  byId('postComment').addEventListener('click', postComment);
+  byId('saveBtn').addEventListener('click', ()=>alert('Saved to Watch Later (UI only)'));
+  // grid & initial list clicks rely on delegation
+}
+
+/* handle hash watch link like #v=ID */
+function checkHash(){
+  const m = location.hash.match(/v=([^&]+)/);
+  if(m){
+    const id = m[1];
+    const v = VIDEOS.find(x=>x.id===id);
+    if(v) { showVideo(v); return; }
+  }
+  // default show first video and render grid
+  renderGrid();
+  renderRelated();
+  showVideo(VIDEOS[0]);
+}
+
+/* autoplay next when iframe ends?
+   For simplicity we use a timer-based "playtime" read from duration string (not exact).
+   Real iframe control requires YouTube Player API and message passing.
+*/
+function setupAutoplayNext(){
+  // crude: when user changes video we set a timer roughly equal to duration (if numeric)
+  // but since we embed real youtube, we can't read end easily -> so provide "Next" behavior via Up Next clicking
+  // (this is documented limitation below)
+}
+
+/* initialize app */
+function init(){
+  setupSearch();
+  attachDelegation();
+  checkHash();
+  // nice: show sorted trending if user clicks trending
+  // simple keyboard shortcut: "n" to go to next video in state.list
+  document.addEventListener('keydown', e=>{
+    if(e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA') return;
+    if(e.key==='n'){ // next
+      const idx = state.list.findIndex(v=>v.id===state.current.id);
+      const next = state.list[(idx+1) % state.list.length];
+      if(next) showVideo(next);
+    }
+  });
+}
+
+init();
+</script>
+
+</body>
+</html>
